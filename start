@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo "Watching for changes"
+
+fswatch -0  ./*.php | while read -d "" event
+do
+
+  echo "Tests executing. Starting (`date`)"
+  phpunit --colors *test.php 
+
+done
