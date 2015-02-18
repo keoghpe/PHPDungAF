@@ -30,13 +30,12 @@ class DungAF
     // echo "Attacks:";
     // var_dump($this->attacks);
     // echo "Arguments:";
-    // var_dump($this->arguments);
+    //var_dump($this->arguments);
   }
 
   public function equals($AF){
     return $this->arguments_equal($AF) && $this->attacks_equal($AF);
   }
-
 
   public function addArguments(){
     $result = true;
@@ -53,9 +52,12 @@ class DungAF
   public function addAttacks(){
     $result = true;
     foreach(func_get_args() as $arg){
-
       if(!in_array($arg, $this->attacks)){
         array_push($this->attacks, $arg);
+
+        // if(!is_array($arg)){
+        //   $arg = [$arg];
+        // }
         $this->add_attacks_nodes([$arg]);
       } else{
         $result = false;
@@ -64,9 +66,71 @@ class DungAF
     return $result;
   }
 
+  // takes arguments of the form "a", "b", "c"
+  public function removeArguments(){
+    $result = true;
+    //echo  "CALLLLLEEEDDD";
+    //var_dump(func_get_args());
+    foreach(func_get_args() as $arg){
+
+      if(($key = array_search($arg, $this->arguments)) !== false){
+        unset($this->arguments[$key]);
+        $this->remove_node_attacks($arg);
+      } else{
+        $result = false;
+      }
+    }
+    return $result;
+  }
+
+  public function removeAttacks(){
+    $result = true;
+
+    foreach(func_get_args() as $arg){
+
+      if(count($arg) !== 2){
+        throw new Exception("Malformed Arguments");
+      }
+
+      if(($key = array_search($arg, $this->attacks)) !== false){
+        unset($this->attacks[$key]);
+      } else{
+        $result = false;
+      }
+    }
+
+    return $result;
+  }
+
   public function ensureSubsumes($anotherAF){
-    if (addArguments($anotherAF.arguments) || addAttacks($anotherAF.getAttacks())) {
-      $this->removeSemanticsInfo();
+    $result = true;
+
+    foreach($anotherAF->arguments as $argument){
+      $result = $this->addArguments($argument);
+    }
+
+    foreach($anotherAF->attacks as $attack){
+      $result = $this->addAttacks($attack);
+    }
+
+    if($this->addArguments($anotherAF->arguments) || $this->addAttacks($anotherAF->attacks)) {
+      $this->removeSemanticInfo();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public function ensureDisjointWith($anotherAF)
+  {
+    $result = true;
+
+    foreach($anotherAF->arguments as $argument){
+      $result = $this->removeArguments($argument);
+    }
+
+    if ($result) {
+      $this->removeSemanticInfo();
       return true;
     } else {
       return false;
@@ -76,7 +140,6 @@ class DungAF
   public function removeSemanticInfo(){
     return true;
   }
-
 
   private function arguments_equal($AF){
 
@@ -114,6 +177,7 @@ class DungAF
     foreach($attacks as $attack){
       if($this->arguments !== null){
         if(count($attack) !== 2){
+          //echo var_dump($attack);
           throw new Exception("Invalid attack supplied");
         }
 
@@ -127,4 +191,12 @@ class DungAF
     }
   }
 
+  private function remove_node_attacks($argument){
+
+    foreach($this->attacks as $key => $attack){
+      if($argument === $attack[0] || $argument === $attack[1]){
+        unset($this->attacks[$key]);
+      }
+    }
+  }
 }

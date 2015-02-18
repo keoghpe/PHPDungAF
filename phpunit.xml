@@ -3,6 +3,7 @@
     <testsuite name="BasicFunctionality">
       <file>tests/BasicFunctionality/Constructors.php</file>
       <file>tests/BasicFunctionality/Addition.php</file>
+      <file>tests/BasicFunctionality/Removal.php</file>
     </testsuite>
   </testsuites>
 </phpunit>
