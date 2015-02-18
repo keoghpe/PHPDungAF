@@ -16,21 +16,17 @@ class DungAF
       $attacks = $this->attacks;
     }
 
-    if($arguments){
-      $this->arguments = $arguments;
-    } else {
-      $this->arguments = [];
-    }
+    $this->arguments = $arguments;
+
 
     if($attacks){
       $this->attacks = $attacks;
       $this->add_attacks_nodes($attacks);
     }
-    //
-    // echo "Attacks:";
-    // var_dump($this->attacks);
-    // echo "Arguments:";
-    //var_dump($this->arguments);
+  }
+
+  public function getAttacks(){
+    return $this->attacks;
   }
 
   public function equals($AF){
@@ -138,6 +134,28 @@ class DungAF
   }
 
   public function removeSemanticInfo(){
+    return true;
+  }
+
+
+  // This subsumes anotherAF if another AF is a subgraph of this
+  public function subsumes($anotherAF){
+
+    if(count(array_intersect($anotherAF->arguments, $this->arguments)) === count($anotherAF->arguments)
+    && count(array_intersect($anotherAF->attacks, $this->attacks)) === count($anotherAF->attacks)
+    && count($anotherAF->attacks) <= count($this->attacks)){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public function isDisjointWith($anotherAF){
+    foreach($this->arguments as $argument){
+      if(in_array($argument, $anotherAF->arguments)){
+        return false;
+      }
+    }
     return true;
   }
 

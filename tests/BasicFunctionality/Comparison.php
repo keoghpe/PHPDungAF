@@ -2,54 +2,57 @@
 
 
 
-class AdditionTest extends PHPUnit_Framework_TestCase
+class ComparisonTest extends PHPUnit_Framework_TestCase
 {
   private $af;
+
   public function setup(){
     $this->af = new DungAF([["a","b"], ["c","d"], ["e","f"]]);
     $this->sameAf = new DungAF([["a","b"], ["c","d"], ["e","f"]]);
   }
 
-  public function testAddArgsAlreadyInAF()
+  public function testEqualAFsAreEqual()
   {
-    $this->af->addArguments("a","b");
     $this->assertTrue($this->af->equals($this->sameAf));
   }
 
-  public function testAddArgsNotAlreadyInAF()
+  public function testUnequalAFsAreUnequalArgs()
   {
-    $this->af->addArguments("g","h");
-    $this->assertTrue($this->af->equals(new DungAF(["g","h"],[["a","b"], ["c","d"], ["e","f"]])));
+    $this->assertFalse($this->af->equals(new DungAF(["g"],[["a","b"], ["c","d"], ["e","f"]])));
   }
 
-  public function testAddAttsAlreadyInAF()
+  public function testUnequalAFsAreUnequalAtts()
   {
-    $this->af->addAttacks(["a","b"],["c","d"]);
-    $this->assertTrue($this->af->equals($this->sameAf));
+    $this->assertFalse($this->af->equals(new DungAF([["a","b"], ["c","d"], ["f","e"]])));
   }
 
-  public function testAddAttsNotAlreadyInAF()
+  public function testSubsumingAFsSubsumeArgs()
   {
-    $this->af->addAttacks(["g","h"], ["i","j"]);
-    $this->assertTrue($this->af->equals(new DungAF([["a","b"], ["c","d"], ["e","f"], ["g","h"], ["i","j"]])));
+    $anotherAF = new DungAF(["g"], [["a","b"], ["c","d"], ["e","f"]]);
+    $this->assertTrue($anotherAF->subsumes($this->af));
+    $this->assertFalse($this->af->subsumes($anotherAF));
   }
 
-  /**
-   * @expectedException Exception
-   */
-  public function testAddMalformedAtts()
+  public function testSubsumingAFsSubsumeAtts()
   {
-    $this->af->addAttacks(["g","h"],["i"]);
+    $anotherAF = new DungAF(["a","b"], [["c","d"], ["e","f"]]);
+
+    $this->assertTrue($this->af->subsumes($anotherAF));
+    $this->assertFalse($anotherAF->subsumes($this->af));
   }
 
-  public function testCheckAttsReturned()
+  public function testIsDisjointWith()
   {
-    $this->assertTrue($this->af->addArguments("g"));
-    $this->assertFalse($this->af->addArguments("g"));
-    $this->assertTrue($this->af->addAttacks(["b","b"]));
-    $this->assertFalse($this->af->addAttacks(["b","b"]));
-    $this->assertTrue($this->af->ensureSubsumes(new DungAF([["c","c"]])));
-    // $this->assertFalse($this->af->ensureSubsumes(new DungAF([["c","c"]])));
+    $anotherAF = new DungAF(["g","h"], [["i","j"], ["k","l"]]);
+    $this->assertTrue($this->af->isDisjointWith($anotherAF));
   }
+
+  // //-------------------------------------
+  //
+  // testName = "disjoint AFs are disjoint";
+  // af = new DungAF(Arrays.asList(new String[]{"a","b"}, new String[]{"c","d"}, new String[]{"e","f"}));
+  // anotherAf = new DungAF(Arrays.asList("g","h"), Arrays.asList(new String[]{"i","j"}, new String[]{"k","l"}));
+  // expected = af.isDisjointWith(anotherAf);
+  // assert expected : ("Failed test \"" + testName + "\".");
 
 }
