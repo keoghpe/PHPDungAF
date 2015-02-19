@@ -47,12 +47,4 @@ class ComparisonTest extends PHPUnit_Framework_TestCase
     $this->assertTrue($this->af->isDisjointWith($anotherAF));
   }
 
-  // //-------------------------------------
-  //
-  // testName = "disjoint AFs are disjoint";
-  // af = new DungAF(Arrays.asList(new String[]{"a","b"}, new String[]{"c","d"}, new String[]{"e","f"}));
-  // anotherAf = new DungAF(Arrays.asList("g","h"), Arrays.asList(new String[]{"i","j"}, new String[]{"k","l"}));
-  // expected = af.isDisjointWith(anotherAf);
-  // assert expected : ("Failed test \"" + testName + "\".");
-
 }

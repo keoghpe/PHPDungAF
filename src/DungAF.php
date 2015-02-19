@@ -141,22 +141,119 @@ class DungAF
   // This subsumes anotherAF if another AF is a subgraph of this
   public function subsumes($anotherAF){
 
-    if(count(array_intersect($anotherAF->arguments, $this->arguments)) === count($anotherAF->arguments)
-    && count(array_intersect($anotherAF->attacks, $this->attacks)) === count($anotherAF->attacks)
-    && count($anotherAF->attacks) <= count($this->attacks)){
-      return true;
-    } else {
-      return false;
-    }
+    if(DungAF::containsAll($this->arguments, $anotherAF->arguments) &&
+      DungAF::containsAll($this->attacks, $anotherAF->attacks)) {
+        return true;
+      } else {
+        return false;
+      }
+  }
+
+  public static function containsAll($arrayA, $arrayB){
+
+    return count(array_intersect($arrayB, $arrayA)) === count($arrayB)
+    && count($arrayB) <= count($arrayA);
   }
 
   public function isDisjointWith($anotherAF){
-    foreach($this->arguments as $argument){
-      if(in_array($argument, $anotherAF->arguments)){
+    return DungAF::areDisjoint($this->arguments, $anotherAF->arguments);
+  }
+
+  public static function areDisjoint($CollectionA, $CollectionB){
+
+    foreach($CollectionA as $element_of_a){
+      if(in_array($element_of_a, $CollectionB)){
         return false;
       }
     }
     return true;
+  }
+
+  public function hasAsConflictFreeSet($arrayOfArguments) {
+
+    foreach($arrayOfArguments as $argument){
+
+      if(!in_array($argument, $this->arguments)
+      || !DungAF::areDisjoint($this->getAttackersOf($argument),
+      $arrayOfArguments)){
+
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public function containsNoConflictAmong($arrayOfArguments) {
+    foreach($arrayOfArguments as $argument){
+      if(!DungAF::areDisjoint($this->getAttackersOf($argument),
+      $arrayOfArguments)){
+
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public function getAttackersOf($argument){
+    $listOfAttackers = [];
+
+    foreach($this->attacks as $attack){
+      if($attack[1] == $argument){
+        array_push($listOfAttackers, $attack[0]);
+      }
+    }
+
+    return $listOfAttackers;
+  }
+
+  /**
+  *   takes an array of args and then other args
+  *   as seperate arguments.
+  **/
+
+  public function collectionIsInConflictWithAnyOf($collection=[]){
+
+    $functionArgs = func_get_args();
+
+    if(!is_array($functionArgs[0])){
+      throw new Exception("The first argument should be an array");
+    } else {
+      $collection = $functionArgs[0];
+    }
+
+    foreach($functionArgs as $key => $argument){
+
+      if($key === 0){
+        continue;
+      }
+
+      if(!DungAF::areDisjoint($collection,$this->getAttackersOf($argument))){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public function hasUnionOfAsConflictFreeSet($collection=[]){
+    $union = [];
+
+    foreach($collection as $row){
+      $union = array_merge($union, $row);
+    }
+
+    return DungAF::containsAll($this->arguments,$union) && $this->hasAsConflictFreeSet($union);
+  }
+
+  public function containsNoConflictAmongUnionOf($collection=[]){
+    $union = [];
+
+    foreach($collection as $row){
+      $union = array_merge($union, $row);
+    }
+
+    return $this->containsNoConflictAmong($union);
   }
 
   private function arguments_equal($AF){
