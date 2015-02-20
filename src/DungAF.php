@@ -7,8 +7,15 @@ class DungAF
   public $arguments;
   public $attacks;
 
+  // arrays with elements of the form: "a string" => ["an", "array", "of", "strings"]
+  private $argsToAttackers;
+  private $argsToTargets;
+  // "a string" => [["multiple", "arrays"], ["of", "strings"]]
+  private $argsToDefenceSets;
+
   function __construct($arguments=[], $attacks=[]){
 
+    $this->attacks = [];
     //if attacks are passed as the first argument
     if(is_array($arguments) && is_array($arguments[0])){
       $this->attacks = $arguments;
@@ -22,6 +29,21 @@ class DungAF
     if($attacks){
       $this->attacks = $attacks;
       $this->add_attacks_nodes($attacks);
+    }
+
+    $this->argsToAttackers = [];
+    $this->argsToTargets = [];
+    $this->argsToDefenceSets = [];
+
+
+    foreach($this->arguments as $arg){
+      $this->argsToAttackers[$arg] = [];
+      $this->argsToTargets[$arg] = [];
+    }
+
+    foreach($this->attacks as $attack){
+      array_push($this->argsToAttackers[$attack[1]],$attack[0]);
+      array_push($this->argsToTargets[$attack[0]],$attack[1]);
     }
   }
 
@@ -51,9 +73,6 @@ class DungAF
       if(!in_array($arg, $this->attacks)){
         array_push($this->attacks, $arg);
 
-        // if(!is_array($arg)){
-        //   $arg = [$arg];
-        // }
         $this->add_attacks_nodes([$arg]);
       } else{
         $result = false;
@@ -149,6 +168,7 @@ class DungAF
       }
   }
 
+  // A contains all B
   public static function containsAll($arrayA, $arrayB){
 
     return count(array_intersect($arrayB, $arrayA)) === count($arrayB)
@@ -271,6 +291,60 @@ class DungAF
     }
     return true;
   }
+
+  public function getArgsAcceptedBy($arrayOfArgs){
+
+    $targets = [];
+    $acceptableArgs = [];
+
+    foreach($arrayOfArgs as $nextArg){
+      if(array_key_exists($nextArg, $this->argsToAttackers)){
+        $targets = array_merge($targets, $this->getTargetsOf($nextArg));
+      }
+    }
+
+    foreach($this->arguments as $nextArg){
+
+      if(array_key_exists($nextArg, $this->argsToAttackers) && DungAF::containsAll($targets, $this->argsToAttackers[$nextArg])){
+        array_push($acceptableArgs, $nextArg);
+      }
+    }
+    return $acceptableArgs;
+  }
+
+  public function getTargetsOf($arg){
+    return in_array($arg, $this->arguments) ? $this->argsToTargets[$arg] : [];
+  }
+
+  public function argsAccept(){
+
+    $functionArgs = func_get_args();
+
+    if(!is_array($functionArgs[0])){
+      throw new Exception("The first argument should be an array");
+    } else {
+      $targetsOfArgSet = $functionArgs[0];
+    }
+
+    foreach($targetsOfArgSet as $key => $arg){
+      $targetsOfArgSet = array_merge($targetsOfArgSet, $this->getAttackersOf($nextArg));
+    }
+
+    foreach($functionArgs as $key => $nextArg){
+      if($key === 0){
+        continue;
+      }
+
+      foreach($this->getAttackersOf($nextArg) as $nextAttacker){
+        if(!in_array($targetsOfArgSet, $nextAttacker)){
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
 
   private function attacks_equal($AF){
 

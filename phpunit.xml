@@ -6,6 +6,7 @@
       <file>tests/BasicFunctionality/Removal.php</file>
       <file>tests/BasicFunctionality/Comparison.php</file>
       <file>tests/BasicFunctionality/ConflictFunc.php</file>
+      <file>tests/BasicFunctionality/Acceptability.php</file>
     </testsuite>
   </testsuites>
 </phpunit>
